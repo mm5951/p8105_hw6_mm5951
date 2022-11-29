@@ -167,6 +167,28 @@ birthweight %>%
 
 ### Comparison of the fit1-3 linear regression models for birth weight
 
+Next, I cross-validate models fit1-3 in order to compare the predictive performance of these competing methods. To do so, I will calculate and compare the root mean squared error calculated using the `modelr::crossv_mc` function.
+
+```{r}
+cv_df = 
+  crossv_mc(birthweight, 100) %>% 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)
+  ) %>% 
+  mutate(
+    fit1_mod = map(train, ~lm(bwt ~ blength, data = birthweight)),
+    fit2_mod = map(train, ~lm(bwt ~ blength + gaweeks,birthweight)),
+    fit3_mod = map(train, ~lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex +       blength*babysex + bhead*blength*babysex, birthweight))
+  ) %>% 
+  mutate(
+    rmse_fit1 = map2_dbl(fit1_mod, test, ~rmse(model = .x, data = .y)),
+    rmse_fit2 = map2_dbl(fit2_mod, test, ~rmse(model = .x, data = .y)),
+    rmse_fit3 = map2_dbl(fit3_mod, test, ~rmse(model = .x, data = .y))
+  )
+```
+
+
 
 
 
