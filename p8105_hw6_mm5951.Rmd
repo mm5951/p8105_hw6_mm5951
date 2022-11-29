@@ -94,6 +94,35 @@ sum(is.na(birthweight))
 ```
 
 
+### Regression model for birth weight
+
+Next, I investigate a regression model for birth weight (`bwt`) against other potential associated variables. Since a baby's birth weight is typically with its length (`blenght`), I use a scatter plot as an exploratory analysis.
+
+```{r}
+birthweight %>% 
+  ggplot(aes(x = blength, y = bwt)) + 
+  geom_point(alpha = .5) +
+  labs(title = "Scatter plot of baby's birth weight and baby's birth length") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+As per the visualization, it appears that there might be a linear relationship between a baby's length and weight at birth. Thus, in a logsitic regression model "fit1" I will input `blength` as a predictor of the birth weight `bwt`. To assess its fitting, I will plot the model residuals against fitted values.
+
+```{r}
+fit1 = lm(bwt ~ blength, data = birthweight)
+fit1 %>% 
+  broom::tidy() %>% 
+  knitr::kable()
+birthweight %>% 
+  modelr::add_residuals(fit1) %>% 
+  modelr::add_predictions(fit1) %>% 
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point(alpha = .3) +
+  labs(title = "Plot of model residuals against fitted values for fit1 model",
+       x = "Fitted Values",
+       y = "Residuals") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
 
 
 
