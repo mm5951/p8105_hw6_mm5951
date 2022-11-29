@@ -75,7 +75,7 @@ Now run glm for each of the cities in your dataset, and extract the adjusted odd
 
 ### Data wrangling  
 
-First, I load using `read_csv()` and wrangle it so it's tidy for regression analysis. Using `mutate()` certain variables are recoded so that binary data collection is more easily understandable (e.g. for `babysex` variable 1 refers to male and 2 to female), and using `sum(is.na())` I check for missing data on the dataset.
+First, I load using `read_csv()` and wrangle it so it is tidy for regression analysis. Using `mutate()` certain variables are recoded so that binary data collection is more easily understandable (e.g. for `babysex` variable 1 refers to male and 2 to female), and using `sum(is.na())` I check for missing data on the dataset.
 
 ```{r, warning = FALSE, message = FALSE}
 birthweight = read_csv("./data/birthweight.csv") %>% 
