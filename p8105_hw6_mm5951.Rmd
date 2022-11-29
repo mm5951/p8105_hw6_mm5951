@@ -58,7 +58,7 @@ homicide_df = read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>%
   filter(city_state != "Tulsa, AL")
 ```
 
-**CONCLUSION**: The "homicide_df_raw" dataset contains `r ncol(homicide_df_raw)` variables and `r nrow(homicide_df_raw)` observations. 
+**CONCLUSION**: The "homicide_df_raw" dataset contains `r ncol(homicide_df)` variables and `r nrow(homicide_df)` observations. 
 
 ### Logistic regression 
 
@@ -77,12 +77,10 @@ Now run glm for each of the cities in your dataset, and extract the adjusted odd
 
 ### Data wrangling  
 
-First, I load using `read_csv()` and wrangle it so it's tidy for regression analysis.
+First, I load using `read_csv()` and wrangle it so it's tidy for regression analysis. Using `mutate()` certain variables are recoded so that binary data collection is more easily understandable (e.g. for `babysex` variable 1 refers to male and 2 to female), and using `sum(is.na())` I check for missing data on the dataset.
 
-Using `sum(is.na())` I check for missing data.
-
-```{r}
-birthweight = read_csv("./birthweight.csv") %>% 
+```{r, warning = FALSE, message = FALSE}
+birthweight = read_csv("./data/birthweight.csv") %>% 
   mutate(babysex = factor(if_else(babysex == 1, "male", "female")),
          frace = factor(recode(frace, '1' = "White", '2' = "Black", '3' = "Asian", 
                                '4' = "Puerto Rican", '8' = "Other", '9' = "Unknown")),
@@ -96,7 +94,7 @@ sum(is.na(birthweight))
 
 ### Linear regression model for birth weight
 
-Next, I investigate a regression model for birth weight (`bwt`) against other potential associated variables. Since a baby's birth weight is typically with its length (`blenght`), I use a scatter plot as an exploratory analysis.
+Next, I generate a regression model for birth weight (`bwt`) against another potential associated variable. Since I suspect a baby's birth weight is typically associated with its length (`blenght`), I use a scatter plot as an exploratory analysis (using `ggplot()`).
 
 ```{r}
 birthweight %>% 
@@ -106,13 +104,15 @@ birthweight %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-As per the visualization, it appears that there might be a linear relationship between a baby's length and weight at birth. Thus, in a logsitic regression model "fit1" I will input `blength` as a predictor of the birth weight `bwt`. To assess its fitting, I will plot the model residuals against fitted values.
+As per the visualization, it appears that there might be a linear relationship between a baby's length and weight at birth. Thus, in a linear logsitic regression model "fit1" I will input `blength` as a predictor of the birth weight `bwt` into the function `lm()`. To assess its fitting, I will plot the model residuals against fitted values.
 
 ```{r}
 fit1 = lm(bwt ~ blength, data = birthweight)
+
 fit1 %>% 
   broom::tidy() %>% 
   knitr::kable()
+
 birthweight %>% 
   modelr::add_residuals(fit1) %>% 
   modelr::add_predictions(fit1) %>% 
@@ -128,10 +128,10 @@ birthweight %>%
 
 In order to assess the fitting of the fit1 model, I will compare it to two alternative models, entailing:
 
-* fit2: Using length at birth and gestational age as predictors (main effects only);
-* fit3: Using head circumference, length, sex, and all interactions (including the three-way interaction) between these as predictors.
+* fit2: using length at birth and gestational age as predictors (main effects only);
+* fit3: using head circumference, length, sex, and all interactions (including the three-way interaction) between these as predictors.
 
-To do so, I use again the function `lm()` including the abovementioned variables in its arguments. Again, the model of residuals is ploted for both fit2 and fit3.
+To do so, I use again the function `lm()` including the abovementioned variables in its arguments. Again, the model of residuals is plotted for both fit2 and fit3.
 
 ```{r}
 fit2 = lm(bwt ~ blength + gaweeks,birthweight)
@@ -207,7 +207,7 @@ cv_df %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-According to the distribution of RMSE, fit3 model have the lowest RMSE value and the distribution is more centered, meaning that fit3 would be the most optimal model among three candidate models
+According to the distribution of RMSE, fit3 model have the lowest RMSE value and the distribution is more centered, meaning that fit3 would be the most optimal model among three candidate models.
 
 
 
