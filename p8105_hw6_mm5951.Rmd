@@ -167,7 +167,7 @@ birthweight %>%
 
 ### Comparison of the fit1-3 linear regression models for birth weight
 
-Next, I cross-validate models fit1-3 in order to compare the predictive performance of these competing methods. To do so, I will calculate and compare the root mean squared error calculated using the `modelr::crossv_mc` function.
+Next, I cross-validate models fit1-3 in order to compare the predictive performance of these competing methods. To do so, I will calculate and compare the root mean squared error (RMSE) calculated using the `modelr::crossv_mc` function.
 
 ```{r}
 cv_df = 
@@ -188,7 +188,26 @@ cv_df =
   )
 ```
 
+Next, I will compare plot and compare the distribution of RMSE values for each candidate model (fit1-3).
 
+```{r}
+cv_df %>% 
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin() +
+  labs(
+    title = "distribution of RMSE values for three candidate model",
+    y = "Root-mean-square-deviation"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+According to the distribution of RMSE, fit3 model have the lowest RMSE value and the distribution is more centered, meaning that fit3 would be the most optimal model among three candidate models
 
 
 
