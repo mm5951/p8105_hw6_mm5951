@@ -5,4 +5,65 @@ date: "`r Sys.Date()`"
 output: github_document
 ---
 
-`
+````{r, include = FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(rvest)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+## Problem 1
+
+Solutions provided by teaching team.
+
+
+## Problem 2
+
+### Data wrangling & description 
+
+First, I import the dataset using `read_csv()` and rename empty observations to "na" ("", "Unknown"). To describe the raw data, I use the `skimr::skim()` function.
+
+```{r, warning = FALSE, message = FALSE}
+homicide_df_raw = read_csv("./data/homicide-data.csv", na = c("","Unknown"))
+
+skimr::skim(homicide_df_raw)
+```
+
+The "homicide_df_raw" dataset contains `r ncol(homicide_df_raw)` variables and `r nrow(homicide_df_raw)` observations. Details on the nature of its variables and summary values are found in the outputs above.
+
+Then, I wrangle data as per problem instructions. This includes:
+
+* Create a new "city_state" variable (e.g. “Baltimore, MD”) with `mutate()` and order by alphabetical orden using `str_c()`.
+* Create a new "resolution" variable using the `case_when()` syntaxis, indicating whehter a case is resolved or not (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+* Note one entry "Tulsa, AL" is excluded using `filter()`, as it is unclear whether it refers to Tulsa, Oklahoma or Birmingham, Alabama (this entry becomes apparent on the next section, under the "US_summary" data frame, and is then retroactively amended).
+
+```{r}
+homicide_df = homicide_df_raw %>% 
+  mutate(city_state = str_c(city, state, sep = ", "),
+         resolution = case_when(
+           disposition == "Closed without arrest" ~ "unsolved",
+           disposition == "Open/No arrest" ~ "unsolved",
+           disposition == "Closed by arrest" ~ "solved"
+         )) %>% 
+  relocate(city_state) %>% 
+  filter(city_state != "Tulsa, AL")
+```
+
+
+ 
+
+## Problem 3
+
+### Data wrangling & description 
