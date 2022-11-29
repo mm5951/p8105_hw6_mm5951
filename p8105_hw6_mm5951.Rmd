@@ -7,7 +7,10 @@ output: github_document
 
 ````{r, include = FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
+library(modelr)
+
 library(rvest)
+
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -31,7 +34,7 @@ Solutions provided by teaching team.
 
 ## Problem 2
 
-### Data wrangling & description 
+### Data wrangling  
 
 **PROMPT**: Create a city_state variable (e.g. “Baltimore, MD”), and a binary variable indicating whether the homicide is solved. Omit cities Dallas, TX; Phoenix, AZ; and Kansas City, MO – these don’t report victim race. Also omit Tulsa, AL – this is a data entry mistake. For this problem, limit your analysis those for whom victim_race is white or black. Be sure that victim_age is numeric.
 
@@ -73,3 +76,12 @@ Now run glm for each of the cities in your dataset, and extract the adjusted odd
 ## Problem 3
 
 ### Data wrangling & description 
+
+
+
+
+
+
+
+*That's it for homework 6!*
+
