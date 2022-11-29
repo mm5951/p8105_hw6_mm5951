@@ -94,7 +94,7 @@ sum(is.na(birthweight))
 ```
 
 
-### Regression model for birth weight
+### Linear regression model for birth weight
 
 Next, I investigate a regression model for birth weight (`bwt`) against other potential associated variables. Since a baby's birth weight is typically with its length (`blenght`), I use a scatter plot as an exploratory analysis.
 
@@ -123,6 +123,49 @@ birthweight %>%
        y = "Residuals") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
+### Two alternative linear regression models for birth weight
+
+In order to assess the fitting of the fit1 model, I will compare it to two alternative models, entailing:
+
+* fit2: Using length at birth and gestational age as predictors (main effects only);
+* fit3: Using head circumference, length, sex, and all interactions (including the three-way interaction) between these as predictors.
+
+To do so, I use again the function `lm()` including the abovementioned variables in its arguments. Again, the model of residuals is ploted for both fit2 and fit3.
+
+```{r}
+fit2 = lm(bwt ~ blength + gaweeks,birthweight)
+
+fit2 %>% 
+  broom::tidy() %>% 
+  knitr::kable()
+birthweight %>% 
+  modelr::add_residuals(fit2) %>% 
+  modelr::add_predictions(fit2) %>% 
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point(alpha = .3) +
+  labs(title = "Plot of model residuals against fitted values for fit2 model",
+       x = "Fitted Values",
+       y = "Residuals") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+fit3 = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, birthweight)
+
+fit3 %>% 
+  broom::tidy() %>% 
+  knitr::kable()
+birthweight %>% 
+  modelr::add_residuals(fit3) %>% 
+  modelr::add_predictions(fit3) %>% 
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point(alpha = .3) +
+  labs(title = "Plot of model residuals against fitted values for fit3 model",
+       x = "Fitted Values",
+       y = "Residuals") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+### Comparison of the fit1-3 linear regression models for birth weight
 
 
 
