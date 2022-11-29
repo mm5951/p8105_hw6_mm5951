@@ -75,8 +75,23 @@ Now run glm for each of the cities in your dataset, and extract the adjusted odd
 
 ## Problem 3
 
-### Data wrangling & description 
+### Data wrangling  
 
+First, I load using `read_csv()` and wrangle it so it's tidy for regression analysis.
+
+Using `sum(is.na())` I check for missing data.
+
+```{r}
+birthweight = read_csv("./birthweight.csv") %>% 
+  mutate(babysex = factor(if_else(babysex == 1, "male", "female")),
+         frace = factor(recode(frace, '1' = "White", '2' = "Black", '3' = "Asian", 
+                               '4' = "Puerto Rican", '8' = "Other", '9' = "Unknown")),
+         mrace = factor(recode(mrace,'1' = "White", '2' = "Black", '3' = "Asian", 
+                               '4' = "Puerto Rican", '8' = "Other", '9' = "Unknown")),
+         malform = factor(recode(malform, '0' = "absent", '1' = "present")))
+
+sum(is.na(birthweight))
+```
 
 
 
