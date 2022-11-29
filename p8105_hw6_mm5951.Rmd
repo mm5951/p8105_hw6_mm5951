@@ -9,8 +9,6 @@ output: github_document
 library(tidyverse)
 library(modelr)
 
-library(rvest)
-
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
