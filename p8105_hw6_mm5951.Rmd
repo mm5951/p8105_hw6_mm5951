@@ -34,15 +34,14 @@ Solutions provided by teaching team.
 
 ### Data wrangling  
 
-**PROMPT**: Create a city_state variable (e.g. “Baltimore, MD”), and a binary variable indicating whether the homicide is solved. Omit cities Dallas, TX; Phoenix, AZ; and Kansas City, MO – these don’t report victim race. Also omit Tulsa, AL – this is a data entry mistake. For this problem, limit your analysis those for whom victim_race is white or black. Be sure that victim_age is numeric.
-
-
 First, I import the dataset using `read_csv()` and rename empty observations to "na" ("", "Unknown"). Then, I wrangle data as per problem instructions. This includes:
 
 * Create a new "city_state" variable (e.g. “Baltimore, MD”) with `mutate()` and order by alphabetical orden using `str_c()`.
 * Create a new "resolution" variable using the `case_when()` syntaxis, indicating whehter a case is resolved or not (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
-* Note one entry "Tulsa, AL" is excluded using `filter()`, as it is unclear whether it refers to Tulsa, Oklahoma or Birmingham, Alabama.
-* **OTHER REQUESTS OF EXCLUSION & as.numeric**
+* Omit cities Dallas, TX; Phoenix, AZ; and Kansas City, MO, as these don’t report victim race using `filter()`.
+* Note one entry "Tulsa, AL" is excluded using `filter()`, as it is unclear whether it refers to Tulsa, Oklahoma or Birmingham, Alabama (data entry mistake).
+* Limit the analysis those for whom "victim_race" is white or black using `filter(df, %in%)`.
+* Ensure that the "victim_age" variable is numeric using `as.numeric()` within a `mutate()` syntaxis.
 
 ```{r, warning = FALSE, message = FALSE}
 homicide_df = read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>% 
@@ -51,18 +50,26 @@ homicide_df = read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>%
            disposition == "Closed without arrest" ~ "unsolved",
            disposition == "Open/No arrest" ~ "unsolved",
            disposition == "Closed by arrest" ~ "solved"
-         )) %>% 
+         ),
+         as.numeric(victim_age)) %>% 
   relocate(city_state) %>% 
-  filter(city_state != "Tulsa, AL")
+  filter(city_state != "Dallas, TX",
+         city_state != "Phoenix, AZ",
+         city_state != "Kansas City, MO",
+         city_state != "Tulsa, AL",
+         victim_race %in%  c("Black", "White")
+        )
 ```
 
 **CONCLUSION**: The "homicide_df_raw" dataset contains `r ncol(homicide_df)` variables and `r nrow(homicide_df)` observations. 
+
 
 ### Logistic regression 
 
 **PROMPT**: For the city of Baltimore, MD, use the glm function to fit a logistic regression with resolved vs unresolved as the outcome and victim age, sex and race as predictors. Save the output of glm as an R object; apply the broom::tidy to this object; and obtain the estimate and confidence interval of the adjusted odds ratio for solving homicides comparing male victims to female victims keeping all other variables fixed.
 
 Now run glm for each of the cities in your dataset, and extract the adjusted odds ratio (and CI) for solving homicides comparing male victims to female victims. Do this within a “tidy” pipeline, making use of purrr::map, list columns, and unnest as necessary to create a dataframe with estimated ORs and CIs for each city.
+
 
 
 ### Data visualization
