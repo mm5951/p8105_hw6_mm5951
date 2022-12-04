@@ -145,7 +145,12 @@ OR_resolution = df_final %>%
 OR_resolution
 ```
 
-In this graph's interpretation, it is important to note that the reference category is female. Any OR below 1 indicates that a female victim's case resolution (that is, to be close as "closed by arrest") is less likely when compared to a male's, all other variables hold constant. *For instance, as an example, looking into Denver, an OR = 2.087 (1.039, 4.297) indicates that a female victim's case has a 108.7% increase in the odds of being resolved when compared to males. Moreover, the CI does not contain the value one, which indicates it is significant. Conversely, Albuquerque's OR = 0.566 (0.266, 1.213) indicates a decrease in the case's odds to be resolved, although the CI contains 1 and therefore this result is not significant.* 
+In this graph's interpretation, it is important to note that the reference category is female. 
+
+Any OR below 1 indicates that a female victim's case resolution (that is, to be classified as "closed by arrest") is less likely when compared to a male's counterpart, all other variables hold constant. *For instance, looking into Denver, an OR = 2.087 (1.039, 4.297) indicates that a female victim's case has a 108.7% increase in the odds of being resolved when compared to males. Moreover, the CI does not contain the value 1, which indicates it is significant. Conversely, Albuquerque's OR = 0.566 (0.266, 1.213) indicates a decrease in the case's odds to be resolved, although the CI contains 1 and therefore this result is not significant.* 
+
+Overall, we observe great variability in terms of resolution of a homicide case by the victim's sex. To be noted is the fact that some cities such as New York experience great variance, as its CI is large (OR: 3.811, (2.062	7.533)).
+
 
 ## Problem 3
 
