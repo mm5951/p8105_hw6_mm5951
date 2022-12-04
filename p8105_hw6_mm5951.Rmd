@@ -59,13 +59,7 @@ homicide_df = read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>%
         )
 ```
 
-        
-### Logistic regression 
-
-**PROMPT**: For the city of Baltimore, MD, use the glm function to fit a logistic regression with resolved vs unresolved as the outcome and victim age, sex and race as predictors. Save the output of glm as an R object; apply the broom::tidy to this object; and obtain the estimate and confidence interval of the adjusted odds ratio for solving homicides comparing male victims to female victims keeping all other variables fixed.
-
-Now run glm for each of the cities in your dataset, and extract the adjusted odds ratio (and CI) for solving homicides comparing male victims to female victims. Do this within a “tidy” pipeline, making use of purrr::map, list columns, and unnest as necessary to create a dataframe with estimated ORs and CIs for each city.
-
+      
 ### Logsitic Regression Analysis: Baltimore, MD
 
 Firstly, for the city of Baltimore, MD, I use the `glm()` function to fit a logistic regression for the "resolution" as the outcome and "victim age, sex and race" as predictors. The output of this analysis is saved as an R object using `saveRDS()`.
@@ -143,7 +137,10 @@ OR_resolution
 
 In this graph's interpretation, it is important to note that the **reference category is female** (as no specific reference is specified in the `lgm()` syntaxis and R rather takes an alphabetical order). 
 
-Any OR below 1 indicates that a male victim's case resolution (that is, to be classified as "closed by arrest") is less likely when compared to a female's counterpart, all other variables hold constant. *For instance, looking into Denver, an OR = 2.087 (1.039, 4.297) indicates that a male victim's case has a 108.7% increase in the odds of being resolved when compared to females. Moreover, the CI does not contain the value 1, which indicates it is significant. Conversely, Albuquerque's OR = 0.566 (0.266, 1.213) indicates a decrease in the case's odds to be resolved, although the CI contains 1 and therefore this result is not significant.* 
+Any OR below 1 indicates that a male victim's case resolution (that is, to be classified as "closed by arrest") is less likely when compared to a female's counterpart, all other variables hold constant. 
+
+* For instance, looking into Denver, an OR = 2.087 (1.039, 4.297) indicates that a male victim's case has a 108.7% increase in the odds of being resolved when compared to females. Moreover, the CI does not contain the value 1, which indicates it is significant. 
+* Conversely, Albuquerque's OR = 0.566 (0.266, 1.213) indicates a decrease in the case's odds to be resolved, although the CI contains 1 and therefore this result is not significant. 
 
 Overall, we observe great variability in terms of resolution of a homicide case by the victim's sex. To be noted is the fact that some cities such as New York experience great variance, as its CI is large (OR: 3.811, (2.062	7.533)).
 
@@ -155,7 +152,7 @@ Overall, we observe great variability in terms of resolution of a homicide case 
 First, I load using `read_csv()` and wrangle it so it is tidy for regression analysis. Using `mutate()` certain variables are recoded so that binary data collection is more easily understandable (e.g. for `babysex` variable 1 refers to male and 2 to female), and using `sum(is.na())` I check for missing data on the dataset.
 
 ```{r, warning = FALSE, message = FALSE}
-birthweight = read_csv("./data/birthweight.csv") %>% 
+birthweight_df = read_csv("./data/birthweight.csv") %>% 
   mutate(babysex = factor(if_else(babysex == 1, "male", "female")),
          frace = factor(recode(frace, '1' = "White", '2' = "Black", '3' = "Asian", 
                                '4' = "Puerto Rican", '8' = "Other", '9' = "Unknown")),
@@ -163,7 +160,7 @@ birthweight = read_csv("./data/birthweight.csv") %>%
                                '4' = "Puerto Rican", '8' = "Other", '9' = "Unknown")),
          malform = factor(recode(malform, '0' = "absent", '1' = "present")))
 
-sum(is.na(birthweight))
+sum(is.na(birthweight_df))
 ```
 
 
@@ -172,7 +169,7 @@ sum(is.na(birthweight))
 Next, I generate a regression model for birth weight (`bwt`) against another potential associated variable. Hypothesizing that a baby's birth weight is typically associated with its length (`blenght`), I use a scatter plot as an exploratory analysis to investigate the basis of this hypothesis (using `ggplot()`).
 
 ```{r}
-birthweight %>% 
+birthweight_df %>% 
   ggplot(aes(x = blength, y = bwt)) + 
   geom_point(alpha = .5) +
   labs(title = "Scatter plot of recorded baby's weight and length at birth",
@@ -184,13 +181,13 @@ birthweight %>%
 As per the visualization, it appears that there might be a linear relationship between a baby's length and weight at birth. Thus, in a linear logsitic regression model "fit1" I will input `blength` as a predictor of the birth weight `bwt` into the function `lm()`. To assess its fitting, I will plot the model residuals against fitted values.
 
 ```{r}
-fit1 = lm(bwt ~ blength, data = birthweight)
+fit1 = lm(bwt ~ blength, data = birthweight_df)
 
 fit1 %>% 
   broom::tidy() %>% 
   knitr::kable(digits = 3)
 
-birthweight %>% 
+birthweight_df %>% 
   modelr::add_residuals(fit1) %>% 
   modelr::add_predictions(fit1) %>% 
   ggplot(aes(x = pred, y = resid)) +
@@ -200,8 +197,7 @@ birthweight %>%
        y = "Residuals") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
-
-The avbove plot shows that the linearity assumption likely holds.
+The plot shows that the linearity assumption likely holds. Therefore, `lm()` is in principle applicable.
 
 
 ### Two alternative linear regression models for birth weight
@@ -214,13 +210,13 @@ In order to assess the fitting of the fit1 model, I will compare it to two alter
 To do so, I use again the function `lm()` including the abovementioned variables in its arguments. Again, the model of residuals is plotted for both fit2 and fit3.
 
 ```{r}
-fit2 = lm(bwt ~ blength + gaweeks, data = birthweight)
+fit2 = lm(bwt ~ blength + gaweeks, data = birthweight_df)
 
 fit2 %>% 
   broom::tidy() %>% 
   knitr::kable(digits = 3)
 
-birthweight %>% 
+birthweight_df %>% 
   modelr::add_residuals(fit2) %>% 
   modelr::add_predictions(fit2) %>% 
   ggplot(aes(x = pred, y = resid)) +
@@ -230,13 +226,13 @@ birthweight %>%
        y = "Residuals") +
   theme(plot.title = element_text(hjust = 0.5))
 
-fit3 = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, data = birthweight)
+fit3 = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, data = birthweight_df)
 
 fit3 %>% 
   broom::tidy() %>% 
   knitr::kable(digits = 3)
 
-birthweight %>% 
+birthweight_df %>% 
   modelr::add_residuals(fit3) %>% 
   modelr::add_predictions(fit3) %>% 
   ggplot(aes(x = pred, y = resid)) +
@@ -253,15 +249,15 @@ Next, I cross-validate models fit1-3 in order to compare the predictive performa
 
 ```{r}
 cv_df = 
-  crossv_mc(birthweight, 100) %>% 
+  crossv_mc(birthweight_df, 100) %>% 
   mutate(
     train = map(train, as_tibble),
     test = map(test, as_tibble)
   ) %>% 
   mutate(
-    fit1_mod = map(train, ~lm(bwt ~ blength, data = birthweight)),
-    fit2_mod = map(train, ~lm(bwt ~ blength + gaweeks,birthweight)),
-    fit3_mod = map(train, ~lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex +       blength*babysex + bhead*blength*babysex, birthweight))
+    fit1_mod = map(train, ~lm(bwt ~ blength, data = birthweight_df)),
+    fit2_mod = map(train, ~lm(bwt ~ blength + gaweeks, data = birthweight_df)),
+    fit3_mod = map(train, ~lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex +       blength*babysex + bhead*blength*babysex, data = birthweight_df))
   ) %>% 
   mutate(
     rmse_fit1 = map2_dbl(fit1_mod, test, ~rmse(model = .x, data = .y)),
@@ -290,7 +286,7 @@ cv_df %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-As per the violin graph visualization above, it becomes apparent that fit3 model has the lowest RMSE value (around 275) when compared to the other two models (RMSE around 325). Moreover, fit3 RMSE has a more centered distribution. Overall, it indicates that fit3 would be the best fitting model of the three candidates investigated.
+As per the violin graph visualization above, it becomes apparent that fit3 model has the lowest RMSE value (around 285) when compared to the other two models (RMSE around 330). Moreover, fit3 RMSE has a more centered distribution. Overall, it indicates that fit3 would be the best fitting model of the three candidates investigated.
 
 *That's it for homework 6!*
 
