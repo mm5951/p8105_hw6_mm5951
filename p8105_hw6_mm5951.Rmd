@@ -97,9 +97,7 @@ readRDS(file = "data/baltimore_glm.rds") %>%
 
 ### Logsitic Regression Analysis: all United States cities
 
-Finally, I run a similar logistic regression model for all US cities (except for the abovementioned excluded due to data gaps). The adjusted OR and CI for solving homicides comparing male victims to female victims is extracted. 
-
-In doing so, the ìteration using `purrr::map()` is applied to do the process within a “tidy” pipeline. Finally, using `knitr::kable()`a table is generated containing estimated ORs and CIs for each city.
+Finally, I run a similar logistic regression model for all US cities (except for the abovementioned excluded due to data gaps). In doing so, the ìteration using `purrr::map()` is applied to do the process within a “tidy” pipeline. Finally, using `knitr::kable()`a table is generated containing each city's estimated ORs and CIs for solving homicides comparing male victims to female victims (ref: female).
 
 ```{r}
 city_list = unique(homicide_df$city_state)
@@ -124,16 +122,30 @@ for (i in 2:47) {
   names(df)[1] = "city_state"
   df_final = rbind(df_final, df)
 }
-knitr::kable(df_final)
+knitr::kable(df_final, digits = 3)
 ```
-
 
 
 ### Data visualization
 
-**PROMPT**: Create a plot that shows the estimated ORs and CIs for each city. Organize cities according to estimated OR, and comment on the plot.
+Finally, I create a plot that shows the estimated ORs and CIs for each city. The cities are organized according to estimated OR.
 
+```{r}
+OR_resolution = df_final %>%
+  mutate(city_state = fct_reorder(city_state, OR)) %>% 
+  ggplot(aes(x = city_state, y = OR)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf_low, ymax = conf_high)) +
+  labs(
+    title = "OR and CI for a case resolution by victim's sex",
+    x = "City, State",
+    y = "Odds Ratio") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
+OR_resolution
+```
+
+In this graph's interpretation, it is important to note that the reference category is female. Any OR below 1 indicates that a female victim's case resolution (that is, to be close as "closed by arrest") is less likely when compared to a male's, all other variables hold constant. *For instance, as an example, looking into Denver, an OR = 2.087 (1.039, 4.297) indicates that a female victim's case has a 108.7% increase in the odds of being resolved when compared to males. Moreover, the CI does not contain the value one, which indicates it is significant. Conversely, Albuquerque's OR = 0.566 (0.266, 1.213) indicates a decrease in the case's odds to be resolved, although the CI contains 1 and therefore this result is not significant.* 
 
 ## Problem 3
 
