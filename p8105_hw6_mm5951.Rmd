@@ -8,7 +8,6 @@ output: github_document
 ````{r, include = FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(modelr)
-library(corrplot)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -61,9 +60,6 @@ homicide_df = read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>%
 ```
 
         
-***** victim_race = as.numeric(victim_race == "White"),
-         
-
 ### Logistic regression 
 
 **PROMPT**: For the city of Baltimore, MD, use the glm function to fit a logistic regression with resolved vs unresolved as the outcome and victim age, sex and race as predictors. Save the output of glm as an R object; apply the broom::tidy to this object; and obtain the estimate and confidence interval of the adjusted odds ratio for solving homicides comparing male victims to female victims keeping all other variables fixed.
@@ -145,9 +141,9 @@ OR_resolution = df_final %>%
 OR_resolution
 ```
 
-In this graph's interpretation, it is important to note that the reference category is female. 
+In this graph's interpretation, it is important to note that the **reference category is female** (as no specific reference is specified in the `lgm()` syntaxis and R rather takes an alphabetical order). 
 
-Any OR below 1 indicates that a female victim's case resolution (that is, to be classified as "closed by arrest") is less likely when compared to a male's counterpart, all other variables hold constant. *For instance, looking into Denver, an OR = 2.087 (1.039, 4.297) indicates that a female victim's case has a 108.7% increase in the odds of being resolved when compared to males. Moreover, the CI does not contain the value 1, which indicates it is significant. Conversely, Albuquerque's OR = 0.566 (0.266, 1.213) indicates a decrease in the case's odds to be resolved, although the CI contains 1 and therefore this result is not significant.* 
+Any OR below 1 indicates that a male victim's case resolution (that is, to be classified as "closed by arrest") is less likely when compared to a female's counterpart, all other variables hold constant. *For instance, looking into Denver, an OR = 2.087 (1.039, 4.297) indicates that a male victim's case has a 108.7% increase in the odds of being resolved when compared to females. Moreover, the CI does not contain the value 1, which indicates it is significant. Conversely, Albuquerque's OR = 0.566 (0.266, 1.213) indicates a decrease in the case's odds to be resolved, although the CI contains 1 and therefore this result is not significant.* 
 
 Overall, we observe great variability in terms of resolution of a homicide case by the victim's sex. To be noted is the fact that some cities such as New York experience great variance, as its CI is large (OR: 3.811, (2.062	7.533)).
 
@@ -173,7 +169,7 @@ sum(is.na(birthweight))
 
 ### Linear regression model for birth weight
 
-Next, I generate a regression model for birth weight (`bwt`) against another potential associated variable. Since I suspect a baby's birth weight is typically associated with its length (`blenght`), I use a scatter plot as an exploratory analysis (using `ggplot()`).
+Next, I generate a regression model for birth weight (`bwt`) against another potential associated variable. Hypothesizing that a baby's birth weight is typically associated with its length (`blenght`), I use a scatter plot as an exploratory analysis to investigate the basis of this hypothesis (using `ggplot()`).
 
 ```{r}
 birthweight %>% 
@@ -192,7 +188,7 @@ fit1 = lm(bwt ~ blength, data = birthweight)
 
 fit1 %>% 
   broom::tidy() %>% 
-  knitr::kable()
+  knitr::kable(digits = 3)
 
 birthweight %>% 
   modelr::add_residuals(fit1) %>% 
@@ -205,6 +201,9 @@ birthweight %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+The avbove plot shows that the linearity assumption likely holds.
+
+
 ### Two alternative linear regression models for birth weight
 
 In order to assess the fitting of the fit1 model, I will compare it to two alternative models, entailing:
@@ -215,11 +214,12 @@ In order to assess the fitting of the fit1 model, I will compare it to two alter
 To do so, I use again the function `lm()` including the abovementioned variables in its arguments. Again, the model of residuals is plotted for both fit2 and fit3.
 
 ```{r}
-fit2 = lm(bwt ~ blength + gaweeks,birthweight)
+fit2 = lm(bwt ~ blength + gaweeks, data = birthweight)
 
 fit2 %>% 
   broom::tidy() %>% 
-  knitr::kable()
+  knitr::kable(digits = 3)
+
 birthweight %>% 
   modelr::add_residuals(fit2) %>% 
   modelr::add_predictions(fit2) %>% 
@@ -230,11 +230,12 @@ birthweight %>%
        y = "Residuals") +
   theme(plot.title = element_text(hjust = 0.5))
 
-fit3 = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, birthweight)
+fit3 = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex + bhead*blength*babysex, data = birthweight)
 
 fit3 %>% 
   broom::tidy() %>% 
-  knitr::kable()
+  knitr::kable(digits = 3)
+
 birthweight %>% 
   modelr::add_residuals(fit3) %>% 
   modelr::add_predictions(fit3) %>% 
@@ -248,7 +249,7 @@ birthweight %>%
 
 ### Comparison of the fit1-3 linear regression models for birth weight
 
-Next, I cross-validate models fit1-3 in order to compare the predictive performance of these competing methods. To do so, I will calculate and compare the root mean squared error (RMSE) calculated using the `modelr::crossv_mc` function.
+Next, I cross-validate models fit1-3 in order to compare the predictive performance of these competing methods. To do so, I will calculate and compare the root mean squared error (RMSE) using the `modelr::crossv_mc` function.
 
 ```{r}
 cv_df = 
@@ -282,14 +283,14 @@ cv_df %>%
   mutate(model = fct_inorder(model)) %>% 
   ggplot(aes(x = model, y = rmse)) + geom_violin() +
   labs(
-    title = "distribution of RMSE values for three candidate model",
+    title = "Distribution of RMSE values for fit1-3 candidate model",
     x = "Model",
     y = "Root-mean-square-deviation (RMSE)"
   ) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-As per the visualization above, it becomes apparent that fit3 model has the lowest RMSE value (around 275) when compared to the other two models (RMSE around 325). Moreover, fit3 RMSE has a more centered distribution. Overall, it indicates that fit3 would be the best fitting model of the three candidates investigated.
+As per the violin graph visualization above, it becomes apparent that fit3 model has the lowest RMSE value (around 275) when compared to the other two models (RMSE around 325). Moreover, fit3 RMSE has a more centered distribution. Overall, it indicates that fit3 would be the best fitting model of the three candidates investigated.
 
 *That's it for homework 6!*
 
