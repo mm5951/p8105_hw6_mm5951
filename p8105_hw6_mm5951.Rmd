@@ -8,6 +8,7 @@ output: github_document
 ````{r, include = FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(modelr)
+library(corrplot)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -37,21 +38,19 @@ Solutions provided by teaching team.
 First, I import the dataset using `read_csv()` and rename empty observations to "na" ("", "Unknown"). Then, I wrangle data as per problem instructions. This includes:
 
 * Create a new "city_state" variable (e.g. “Baltimore, MD”) with `mutate()` and order by alphabetical orden using `str_c()`.
-* Create a new "resolution" variable using the `case_when()` syntaxis, indicating whehter a case is resolved or not (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+* Create a new "resolution" variable using the `disposition` syntaxis, indicating whehter a case is solved (those for which the disposition is “Closed by arrest”).
+* Ensure that relevant variables are numeric using `as.numeric()` within a `mutate()` syntaxis.
 * Omit cities Dallas, TX; Phoenix, AZ; and Kansas City, MO, as these don’t report victim race using `filter()`.
 * Note one entry "Tulsa, AL" is excluded using `filter()`, as it is unclear whether it refers to Tulsa, Oklahoma or Birmingham, Alabama (data entry mistake).
 * Limit the analysis those for whom "victim_race" is white or black using `filter(df, %in%)`.
-* Ensure that the "victim_age" variable is numeric using `as.numeric()` within a `mutate()` syntaxis.
 
 ```{r, warning = FALSE, message = FALSE}
 homicide_df = read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>% 
   mutate(city_state = str_c(city, state, sep = ", "),
-         resolution = case_when(
-           disposition == "Closed without arrest" ~ "unsolved",
-           disposition == "Open/No arrest" ~ "unsolved",
-           disposition == "Closed by arrest" ~ "solved"
-         ),
-         as.numeric(victim_age)) %>% 
+         resolution = as.numeric(disposition == "Closed by arrest"),
+         victim_age = as.numeric(victim_age),
+         victim_sex = as.numeric(victim_sex == "Female")
+  ) %>% 
   relocate(city_state) %>% 
   filter(city_state != "Dallas, TX",
          city_state != "Phoenix, AZ",
@@ -61,14 +60,72 @@ homicide_df = read_csv("./data/homicide-data.csv", na = c("","Unknown")) %>%
         )
 ```
 
-**CONCLUSION**: The "homicide_df_raw" dataset contains `r ncol(homicide_df)` variables and `r nrow(homicide_df)` observations. 
-
+        
+***** victim_race = as.numeric(victim_race == "White"),
+         
 
 ### Logistic regression 
 
 **PROMPT**: For the city of Baltimore, MD, use the glm function to fit a logistic regression with resolved vs unresolved as the outcome and victim age, sex and race as predictors. Save the output of glm as an R object; apply the broom::tidy to this object; and obtain the estimate and confidence interval of the adjusted odds ratio for solving homicides comparing male victims to female victims keeping all other variables fixed.
 
 Now run glm for each of the cities in your dataset, and extract the adjusted odds ratio (and CI) for solving homicides comparing male victims to female victims. Do this within a “tidy” pipeline, making use of purrr::map, list columns, and unnest as necessary to create a dataframe with estimated ORs and CIs for each city.
+
+### Logsitic Regression Analysis: Baltimore, MD
+
+Firstly, for the city of Baltimore, MD, I use the `glm()` function to fit a logistic regression for the "resolution" as the outcome and "victim age, sex and race" as predictors. The output of this analysis is saved as an R object using `saveRDS()`.
+
+```{r}
+baltimore_df = homicide_df %>%
+  filter(city == "Baltimore") %>%
+  glm(resolution ~ victim_age + victim_race + victim_sex, data = ., family = binomial()) %>%
+  saveRDS(file = "data/baltimore_glm.rds")
+```
+
+Next, I apply the `broom::tidy()` function to the "baltimore_glm" object to obtain the estimate as well as confidence interval (CI) of the adjusted odds ratio (OR) for solving homicides according to the victim's sex while keeping all other variables fixed (reference category: female).
+
+```{r}
+readRDS(file = "data/baltimore_glm.rds") %>%
+  broom::tidy(conf.int = TRUE) %>% 
+  janitor::clean_names() %>%
+  mutate(OR = exp(estimate),
+         conf_low = exp(conf_low),
+         conf_high = exp(conf_high)) %>%
+  select(term, OR, conf_low, conf_high) %>% 
+  filter(term == "victim_sex") %>%
+  knitr::kable(digits = 3)
+```
+
+### Logsitic Regression Analysis: all United States cities
+
+Finally, I run a similar logistic regression model for all US cities (except for the abovementioned excluded due to data gaps). The adjusted OR and CI for solving homicides comparing male victims to female victims is extracted. 
+
+In doing so, the ìteration using `purrr::map()` is applied to do the process within a “tidy” pipeline. Finally, using `knitr::kable()`a table is generated containing estimated ORs and CIs for each city.
+
+```{r}
+city_list = unique(homicide_df$city_state)
+city_function = function(y){
+  output = homicide_df %>%
+    filter(city_state == y) %>%
+    glm(resolution ~ victim_age + victim_race + victim_sex, data = ., family = binomial()) %>%
+    broom::tidy(conf.int = TRUE) %>% 
+    janitor::clean_names() %>%
+    mutate(OR = exp(estimate),
+         conf_low = exp(conf_low),
+         conf_high = exp(conf_high)) %>%
+    filter(term == "victim_sex") %>%
+    select(term, OR, conf_low, conf_high)
+}
+
+final_list = map(city_list, city_function)
+df_final = data.frame(city_list[1],final_list[[1]])
+names(df_final)[1] = "city_state"
+for (i in 2:47) {
+  df = data.frame(city_list[i],final_list[[i]])
+  names(df)[1] = "city_state"
+  df_final = rbind(df_final, df)
+}
+knitr::kable(df_final)
+```
 
 
 
